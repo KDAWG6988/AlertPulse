@@ -1,0 +1,75 @@
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">AI-Native ICU Alarm Triage</div>
+    <h1 class="hero-headline">The ICU Alarm Problem is Solved.</h1>
+    <p class="hero-sub">AlertPulse deploys autonomous AI agents that monitor hospital signal data 24/7 — triaging alarms, classifying them as actionable or suppressible, and surfacing true signals for clinical attention before the noise wins.</p>
+    <div class="hero-cta-row">
+      <a href="/admin" class="btn btn--primary">Start your free pilot</a>
+      <a href="mailto:hello@alertpulse.com" class="btn btn--ghost">Talk to us</a>
+    </div>
+    <div class="hero-metric-row">
+      <div class="hero-metric">
+        <span class="hero-metric-value">188</span>
+        <span class="hero-metric-label">Alarms/patient/day avg.</span>
+      </div>
+      <div class="hero-metric-divider"></div>
+      <div class="hero-metric">
+        <span class="hero-metric-value">80%+</span>
+        <span class="hero-metric-label">Non-actionable suppressed</span>
+      </div>
+      <div class="hero-metric-divider"></div>
+      <div class="hero-metric">
+        <span class="hero-metric-value">320K+</span>
+        <span class="hero-metric-label">Events processed in production</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="demo-card">
+      <div class="demo-card__header">
+        <div class="demo-card__tag demo-card__tag--critical">CRITICAL — DISPATCH</div>
+        <div class="demo-card__time">just now</div>
+      </div>
+      <div class="demo-card__body">
+        <div class="demo-card__signal">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2v16M2 10h16" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/></svg>
+          <span class="demo-card__signal-label">HR 142 — true signal</span>
+          <span class="demo-card__signal-detail">Bay 3 · Patient ID 4891</span>
+        </div>
+        <div class="demo-card__reasoning">
+          <div class="demo-card__reasoning-label">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#0ea5e9" stroke-width="1.5"/><path d="M6 5v3M6 4h.01" stroke="#0ea5e9" stroke-width="1.2" stroke-linecap="round"/></svg>
+            AI Reasoning
+          </div>
+          <div class="demo-card__reasoning-chain">
+            <div class="demo-card__chain-item">
+              <span class="demo-card__chain-dot"></span>
+              <span>Pattern: sustained HR > 135 bpm × 3 min</span>
+            </div>
+            <div class="demo-card__chain-item">
+              <span class="demo-card__chain-dot"></span>
+              <span>Context: no medication Onset logged</span>
+            </div>
+            <div class="demo-card__chain-item">
+              <span class="demo-card__chain-dot demo-card__chain-dot--accent"></span>
+              <span>Rule: <strong>DISPATCH-02</strong> — HR > 130 + no suppression flags</span>
+            </div>
+          </div>
+          <div class="demo-card__confidence">
+            <span class="demo-card__confidence-label">Confidence</span>
+            <span class="demo-card__confidence-bar"><span class="demo-card__confidence-fill" style="width: 91%;"></span></span>
+            <span class="demo-card__confidence-value">91%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="waveform-container">
+      <div class="waveform-label">LIVE — ICU Bay 3</div>
+      <svg class="waveform-svg" viewBox="0 0 480 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <polyline class="wave-bg" points="0,50 20,50 30,48 40,52 50,49 60,51 70,50 80,45 90,55 100,47 110,53 120,49 130,51 140,50 150,40 160,60 170,46 180,54 190,48 200,52 210,49 220,51 230,50 240,35 250,65 260,43 270,57 280,47 290,53 300,49 310,51 320,50 330,30 340,70 350,42 360,58 370,46 380,54 390,48 400,52 410,50 420,53 430,47 440,51 450,50 460,50 470,50 480,50"/>
+        <polyline class="wave-accent" points="0,50 20,50 30,48 40,52 50,49 60,51 70,50 80,45 90,55 100,47 110,53 120,49 130,51 140,50 150,40 160,60 170,46 180,54 190,48 200,52 210,49 220,51 230,50 240,35 250,65 260,43 270,57 280,47 290,53 300,49 310,51 320,50 330,30 340,70 350,42 360,58 370,46 380,54 390,48 400,52 410,50 420,53 430,47 440,51 450,50 460,50 470,50 480,50"/>
+      </svg>
+      <div class="waveform-scan-line"></div>
+    </div>
+  </div>
+</section>

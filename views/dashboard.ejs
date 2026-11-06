@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlertPulse — Alarm Triage Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/theme.css">
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --bg-alt: #f2efe9;
+      --surface: #ffffff;
+      --fg: #1a2744;
+      --fg-2: #4a5568;
+      --fg-3: #8a95a3;
+      --accent: #0ea5e9;
+      --accent-dim: rgba(14, 165, 233, 0.10);
+      --critical: #dc2626;
+      --critical-bg: #fef2f2;
+      --critical-border: rgba(220, 38, 38, 0.25);
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --warning-border: rgba(217, 119, 6, 0.25);
+      --suppress: #6b7280;
+      --suppress-bg: #f3f4f6;
+      --suppress-border: rgba(107, 114, 128, 0.2);
+      --recovery: #059669;
+      --recovery-bg: #ecfdf5;
+      --recovery-border: rgba(5, 150, 105, 0.25);
+      --border: #e5e0d8;
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--fg);
+      text-decoration: none;
+    }
+    .topbar-logo-dot { color: var(--accent); }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .stream-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-3);
+      background: var(--bg-alt);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+    }
+    .stream-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--recovery);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .refresh-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .refresh-btn:hover { opacity: 0.85; }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stat-cell {
+      background: var(--surface);
+      padding: 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-value {
+      font-family: 'Sora', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--fg);
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--fg-3);
+    }
+    .stat-value--critical { color: var(--critical); }
+    .stat-value--suppress { color: var(--fg-2); }
+    .stat-value--recovery { color: var(--recovery); }
+
+    /* MAIN LAYOUT */
+    .main-layout {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    /* PANEL */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-alt);
+    }
+    .panel-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: -0.2px;
+    }
+    .panel-meta {
+      font-size: 12px;
+      color: var(--fg-3);
+    }
+    .panel-body { padding: 0; }
+
+    /* FILTER TABS */
+    .filter-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      padding: 0 20px;
+      gap: 4px;
+    }
+    .filter-tab {
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg-3);
+      cursor: pointer;
+      border: none;
+      background: none;
+      border-bottom: 2px solid transparent;
+      font-family: inherit;
+      transition: color 0.15s;
+      margin-bottom: -1px;
+    }
+    .filter-tab:hover { color: var(--fg); }
+    .filter-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ALARM ROWS */
+    .alarm-list { max-height: 700px; overflow-y: auto; }
+    .alarm-row {
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      align-items: start;
+      gap: 0;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      border-left: 3px solid transparent;
+      transition: background 0.1s;
+    }
+    .alarm-row:last-child { border-bottom: none; }
+    .alarm-row:hover { background: var(--bg-alt); }
+    .alarm-row--dispatch { border-left-color: var(--critical); background: var(--critical-bg); }
+    .alarm-row--suppress { border-left-color: var(--suppress); }
+    .alarm-row--monitor { border-left-color: var(--warning); background: var(--warning-bg); }
+
+    .alarm-icon-cell {
+      display: flex;
+      align-items: flex-start;
+      padding-top: 2px;
+    }
+    .alarm-pulse-icon {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .alarm-pulse-icon--dispatch { background: var(--critical); box-shadow: 0 0 0 3px rgba(220,38,38,0.2); }
+    .alarm-pulse-icon--suppress { background: var(--suppress); opacity: 0.5; }
+    .alarm-pulse-icon--monitor { background: var(--warning); }
+
+    .alarm-main { padding: 0 12px; }
+    .alarm-header-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .alarm-source {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-3);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+    .alarm-time {
+      font-size: 11px;
+      color: var(--fg-3);
+      font-family: 'Sora', monospace;
+    }
+    .alarm-description {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 6px;
+    }
+    .alarm-param {
+      font-size: 12px;
+      color: var(--fg-2);
+      margin-bottom: 8px;
+    }
+
+    /* REASONING BOX */
+    .reasoning-box {
+      background: var(--accent-dim);
+      border: 1px solid rgba(14, 165, 233, 0.18);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      color: var(--fg-2);
+      line-height: 1.55;
+    }
+    .reasoning-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .reasoning-rule {
+      font-size: 11px;
+      color: var(--fg-3);
+      font-style: italic;
+      margin-top: 3px;
+    }
+
+    /* ACTION BADGE */
+    .action-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+      align-self: start;
+      margin-top: 2px;
+    }
+    .action-badge--dispatch {
+      background: var(--critical-bg);
+      color: var(--critical);
+      border: 1px solid var(--critical-border);
+    }
+    .action-badge--suppress {
+      background: var(--suppress-bg);
+      color: var(--suppress);
+      border: 1px solid var(--suppress-border);
+    }
+    .action-badge--monitor {
+      background: var(--warning-bg);
+      color: var(--warning);
+      border: 1px solid var(--warning-border);
+    }
+
+    .confidence-badge {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--fg-3);
+      font-family: 'Sora', monospace;
+      margin-top: 4px;
+      text-align: right;
+    }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+    /* FEEDBACK PANEL */
+    .feedback-panel-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .feedback-panel-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .feedback-list { padding: 0; }
+    .feedback-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .feedback-row:last-child { border-bottom: none; }
+    .feedback-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .feedback-dot--dispatch { background: var(--critical); }
+    .feedback-dot--suppress { background: var(--fg-3); opacity: 0.5; }
+    .feedback-desc { flex: 1; color: var(--fg-2); }
+    .feedback-time { font-size: 11px; color: var(--fg-3); font-family: 'Sora', monospace; flex-shrink: 0; }
+
+    /* RESOLUTION RATE */
+    .resolution-card {
+      padding: 18px 20px;
+    }
+    .resolution-header { margin-bottom: 12px; }
+    .resolution-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--fg-3);
+    }
+    .resolution-value {
+      font-family: 'Sora', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--fg);
+      letter-spacing: -0.8px;
+    }
+    .resolution-bar-bg {
+      height: 8px;
+      background: var(--bg-alt);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .resolution-bar-dispatched {
+      height: 100%;
+      background: var(--critical);
+      border-radius: 4px;
+      display: inline-block;
+      width: 100%;
+    }
+    .resolution-bar-suppressed {
+      height: 100%;
+      background: var(--fg-3);
+      opacity: 0.4;
+      border-radius: 4px;
+      display: inline-block;
+    }
+    .resolution-legend {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--fg-3);
+    }
+    .resolution-legend span::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    .legend-dispatch::before { background: var(--critical); }
+    .legend-suppress::before { background: var(--fg-3); opacity: 0.4; }
+
+    /* EMPTY STATE */
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--fg-3);
+      font-size: 14px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .main-layout { grid-template-columns: 1fr; }
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .stats-bar { grid-template-columns: 1fr; }
+      .alarm-row { grid-template-columns: 32px 1fr; }
+      .action-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- DEMO ONLY banner: this dashboard shows simulated alarms only. -->
+<div style="background:#fef2f2;border-bottom:2px solid #dc2626;color:#7f1d1d;padding:10px 24px;font-weight:700;text-align:center;font-size:14px;">
+  DEMO ONLY — NOT FOR CLINICAL USE. Simulated alarms only. AlertPulse is not a medical device, is not FDA cleared, and must never be used for real ICU triage.
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="/" class="topbar-logo">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="5" fill="#0ea5e9"/><path d="M6 10h2v4H6zM9 7h2v7H9zM12 5h2v9h-2z" fill="white"/></svg>
+    AlertPulse<span class="topbar-logo-dot">.</span>
+  </a>
+  <div class="topbar-right">
+    <div class="stream-badge">
+      <span class="stream-dot"></span>
+      SIMULATED — Demo Triaging
+    </div>
+    <button class="refresh-btn" onclick="location.reload()">Refresh</button>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-cell">
+    <span class="stat-value"><%= stats.total %></span>
+    <span class="stat-label">Alarms Processed</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-value stat-value--critical"><%= stats.dispatched %></span>
+    <span class="stat-label">True Signals</span>
+  </div>
+  <div class="stat-cell">
+    <span class="stat-value stat-value--suppress"><%= stats.suppressed %></span>
+    <span class="stat-label">Suppressed</span>
+  </div>
+  <div class="stat-cell">
+    <% const suppressRate = stats.total > 0 ? Math.round((stats.suppressed / stats.total) * 100) : 0; %>
+    <span class="stat-value stat-value--recovery"><%= suppressRate %>%</span>
+    <span class="stat-label">Noise Filter Rate</span>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- LEFT: Alarm Feed -->
+  <div>
+    <div class="panel">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all" onclick="filterAlarms('all', this)">All</button>
+        <button class="filter-tab" data-filter="dispatch" onclick="filterAlarms('dispatch', this)">True Signals</button>
+        <button class="filter-tab" data-filter="suppress" onclick="filterAlarms('suppress', this)">Suppressed</button>
+        <button class="filter-tab" data-filter="monitor" onclick="filterAlarms('monitor', this)">Monitoring</button>
+      </div>
+      <div class="panel-header">
+        <span class="panel-title">Alarm Feed</span>
+        <span class="panel-meta"><%= alarms.length %> events</span>
+      </div>
+      <div class="alarm-list" id="alarmList">
+        <% if (alarms.length === 0) { %>
+          <div class="empty-state">No alarms yet. The stream will begin shortly.</div>
+        <% } else { %>
+          <% alarms.forEach(function(alarm) { %>
+            <div class="alarm-row alarm-row--<%= alarm.action || 'monitor' %>" data-action="<%= alarm.action || 'monitor' %>">
+              <div class="alarm-icon-cell">
+                <span class="alarm-pulse-icon alarm-pulse-icon--<%= alarm.action || 'monitor' %>"></span>
+              </div>
+              <div class="alarm-main">
+                <div class="alarm-header-row">
+                  <span class="alarm-source"><%= alarm.source %></span>
+                  <span class="alarm-time"><%= new Date(alarm.created_at).toLocaleTimeString() %></span>
+                </div>
+                <div class="alarm-description">
+                  <%= alarm.param %> <%= alarm.value %><%= alarm.unit %>
+                  <% if (alarm.severity) { %>
+                    <span style="font-size:11px;color:var(--fg-3);font-weight:400;"> — <%= alarm.severity %></span>
+                  <% } %>
+                </div>
+                <div class="alarm-param">
+                  <%= alarm.event_type %> &middot; <%= alarm.param %>
+                  <% if (alarm.priority_score) { %>
+                    &middot; Priority <%= Math.round(alarm.priority_score) %>
+                  <% } %>
+                </div>
+                <div class="reasoning-box">
+                  <div class="reasoning-label">
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4" stroke="#0ea5e9" stroke-width="1.2"/><path d="M5 4.5v3M5 3.5h.01" stroke="#0ea5e9" stroke-width="1" stroke-linecap="round"/></svg>
+                    AI Reasoning
+                  </div>
+                  <%= alarm.reason || 'Processing...' %>
+                  <% if (alarm.rule_applied) { %>
+                    <div class="reasoning-rule">Rule: <%= alarm.rule_applied %></div>
+                  <% } %>
+                  <% if (alarm.suppression_category) { %>
+                    <div style="font-size:11px;color:var(--fg-3);margin-top:3px;">Category: <%= alarm.suppression_category.replace('_', ' ') %></div>
+                  <% } %>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;padding-left:8px;">
+                <span class="action-badge action-badge--<%= alarm.action || 'monitor' %>">
+                  <% if (alarm.action === 'dispatch') { %>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Dispatch
+                  <% } else if (alarm.action === 'suppress') { %>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    Suppressed
+                  <% } else { %>
+                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="2" fill="currentColor"/></svg>
+                    Monitor
+                  <% } %>
+                </span>
+                <span class="confidence-badge"><%= alarm.confidence ? alarm.confidence + '%' : '—' %> conf</span>
+              </div>
+            </div>
+          <% }); %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Sidebar -->
+  <div class="sidebar">
+
+    <!-- Resolution Rate -->
+    <div class="panel">
+      <div class="resolution-card">
+        <div class="resolution-header">
+          <div class="resolution-label">Triage Breakdown</div>
+          <div class="resolution-value"><%= suppressRate %>% suppressed</div>
+        </div>
+        <div class="resolution-bar-bg">
+          <% if (stats.total > 0) { %>
+            <% const dispPct = Math.round((stats.dispatched / stats.total) * 100); %>
+            <% const suppPct = 100 - dispPct; %>
+            <span style="display:inline-block;width:<%= dispPct %>%;;height:8px;background:var(--critical);border-radius:4px 0 0 4px;"></span>
+            <span style="display:inline-block;width:<%= suppPct %>%;;height:8px;background:var(--fg-3);opacity:0.3;border-radius:0 4px 4px 0;"></span>
+          <% } else { %>
+            <div style="height:8px;background:var(--bg-alt);border-radius:4px;"></div>
+          <% } %>
+        </div>
+        <div class="resolution-legend">
+          <span class="legend-dispatch">Dispatched</span>
+          <span class="legend-suppress">Suppressed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Dispatches -->
+    <div class="panel">
+      <div class="feedback-panel-header">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="#dc2626" stroke-width="1.5"/><path d="M7 5v3M7 4h.01" stroke="#dc2626" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span class="feedback-panel-title">Recent Dispatches</span>
+      </div>
+      <div class="feedback-list">
+        <% const dispatches = alarms.filter(a => a.action === 'dispatch').slice(0, 8); %>
+        <% if (dispatches.length === 0) { %>
+          <div style="padding:20px;text-align:center;color:var(--fg-3);font-size:13px;">No dispatches yet</div>
+        <% } else { %>
+          <% dispatches.forEach(function(a) { %>
+            <div class="feedback-row">
+              <span class="feedback-dot feedback-dot--dispatch"></span>
+              <span class="feedback-desc"><%= a.param %> <%= a.value %> at <%= a.source %></span>
+              <span class="feedback-time"><%= new Date(a.created_at).toLocaleTimeString() %></span>
+            </div>
+          <% }); %>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Suppression Categories -->
+    <div class="panel">
+      <div class="feedback-panel-header">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="#6b7280" stroke-width="1.5"/><path d="M5 7h4" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span class="feedback-panel-title">Suppression Reasons</span>
+      </div>
+      <div class="feedback-list">
+        <% const categories = {}; %>
+        <% alarms.forEach(function(a) { if (a.suppression_category) { categories[a.suppression_category] = (categories[a.suppression_category] || 0) + 1; } }); %>
+        <% const sortedCategories = Object.entries(categories).sort((a,b) => b[1] - a[1]); %>
+        <% if (sortedCategories.length === 0) { %>
+          <div style="padding:20px;text-align:center;color:var(--fg-3);font-size:13px;">No suppressions yet</div>
+        <% } else { %>
+          <% sortedCategories.forEach(function([cat, count]) { %>
+            <div class="feedback-row">
+              <span class="feedback-dot feedback-dot--suppress"></span>
+              <span class="feedback-desc"><%= cat.replace(/_/g, ' ') %></span>
+              <span class="feedback-time">×<%= count %></span>
+            </div>
+          <% }); %>
+        <% } %>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function filterAlarms(action, btn) {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.alarm-row').forEach(row => {
+      row.style.display = (action === 'all' || row.dataset.action === action) ? '' : 'none';
+    });
+  }
+
+  // Auto-refresh every 5 seconds
+  setInterval(() => { location.reload(); }, 5000);
+</script>
+
+<!-- Polsia Analytics -->
+<script>(function(){var slug="alertpulse";if(!slug)return;var vid=localStorage.getItem('polsia_vid');if(!vid){vid='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&0x3|0x8)).toString(16);});localStorage.setItem('polsia_vid',vid);}new Image().src='https://polsia.com/api/beacon/pixel?s='+encodeURIComponent(slug)+'&v='+encodeURIComponent(vid);})();</script>
+</body>
+</html>

@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlertPulse — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf8f5; --bg-alt: #f2efe9; --surface: #ffffff; --fg: #1a2744;
+      --fg-2: #4a5568; --fg-3: #8a95a3; --border: #e5e0d8;
+      --accent: #0ea5e9; --accent-dim: rgba(14,165,233,.10);
+      --green: #059669; --green-bg: #ecfdf5; --green-border: rgba(5,150,105,.25);
+      --red: #dc2626; --red-bg: #fef2f2; --red-border: rgba(220,38,38,.25);
+      --orange: #d97706; --orange-bg: #fffbeb; --orange-border: rgba(217,119,6,.25);
+      --purple: #7c3aed; --purple-bg: #f5f3ff; --purple-border: rgba(124,58,237,.25);
+      --radius: 10px; --radius-lg: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.5; min-height: 100vh; }
+
+    /* TOPBAR */
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+    .topbar-logo { display: flex; align-items: center; gap: 8px; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; color: var(--fg); text-decoration: none; }
+    .topbar-logo-dot { color: var(--accent); }
+    .topbar-nav { display: flex; gap: 4px; }
+    .nav-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; transition: background 0.15s; color: var(--fg-2); background: transparent; }
+    .nav-btn:hover { background: var(--bg-alt); }
+    .nav-btn.active { background: var(--accent); color: #fff; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .sync-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--fg-3); background: var(--bg-alt); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px; }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+    .logout-btn { background: none; border: 1px solid var(--border); color: var(--fg-3); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .logout-btn:hover { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+
+    /* PAGE */
+    .page { max-width: 1300px; margin: 0 auto; padding: 32px 24px; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .page-title { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: var(--fg); letter-spacing: -0.3px; }
+    .page-subtitle { font-size: 13px; color: var(--fg-3); margin-top: 2px; }
+
+    /* STAT CARDS */
+    .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+    .stat-card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--fg-3); margin-bottom: 8px; }
+    .stat-card-value { font-family: 'Sora', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; color: var(--fg); }
+    .stat-card-value--green { color: var(--green); }
+    .stat-card-value--red { color: var(--red); }
+    .stat-card-value--orange { color: var(--orange); }
+
+    /* PANEL */
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+    .panel-title { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; }
+    .panel-meta { font-size: 12px; color: var(--fg-3); }
+    .panel-body { padding: 0; }
+
+    /* SECTION TABS */
+    .section-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 20px; }
+    .section-tab { padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--fg-3); cursor: pointer; border: none; background: none; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
+    .section-tab:hover { color: var(--fg); }
+    .section-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; }
+    th { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--fg-3); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); background: var(--bg-alt); }
+    td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13.5px; color: var(--fg-2); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-alt); }
+    .hospital-name { font-weight: 600; color: var(--fg); font-size: 14px; }
+    .hospital-meta { font-size: 12px; color: var(--fg-3); margin-top: 2px; }
+
+    /* BADGES */
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge--lead { background: var(--bg-alt); color: var(--fg-3); border: 1px solid var(--border); }
+    .badge--pilot { background: var(--purple-bg); color: var(--purple); border: 1px solid var(--purple-border); }
+    .badge--active { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .badge--churned { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .badge--paid { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .badge--pending { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+    .badge--overdue { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .badge--basic { background: var(--bg-alt); color: var(--fg-2); border: 1px solid var(--border); }
+    .badge--premium { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(14,165,233,.3); }
+    .badge--sm { font-size: 10px; padding: 2px 7px; }
+
+    /* AMOUNT */
+    .amount { font-family: 'Sora', monospace; font-weight: 700; font-size: 14px; color: var(--fg); }
+    .amount--paid { color: var(--green); }
+    .amount--pending { color: var(--orange); }
+    .amount--overdue { color: var(--red); }
+
+    /* ACTIONS */
+    .action-group { display: flex; gap: 4px; align-items: center; }
+    .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.8; }
+    .btn--primary { background: var(--accent); color: #fff; }
+    .btn--secondary { background: var(--bg-alt); color: var(--fg-2); border: 1px solid var(--border); }
+    .btn--danger { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .btn--success { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .btn--sm { padding: 4px 10px; font-size: 11px; }
+    .btn--icon { padding: 6px 8px; }
+
+    /* MODAL */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,39,68,.5); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 28px; width: 520px; max-width: 90vw; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .modal-title { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--fg-3); font-family: inherit; padding: 0; }
+    .modal-close:hover { color: var(--fg); }
+
+    /* FORM */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 12px; font-weight: 600; color: var(--fg-2); }
+    input, select, textarea { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 12px; font-size: 13.5px; font-family: inherit; color: var(--fg); outline: none; transition: border-color 0.15s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+    .form-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .error-msg { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); padding: 8px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600; margin-bottom: 12px; display: none; }
+    .error-msg.show { display: block; }
+
+    /* CONFIG PANEL */
+    .config-grid { display: grid; grid-template-columns: 140px 1fr 80px; gap: 0; padding: 12px 16px; border-bottom: 1px solid var(--border); align-items: center; }
+    .config-grid:last-child { border-bottom: none; }
+    .config-key { font-size: 12px; font-weight: 600; color: var(--fg-3); font-family: monospace; }
+    .config-value { font-size: 13px; color: var(--fg); font-family: monospace; }
+    .config-actions { display: flex; gap: 4px; justify-content: flex-end; }
+
+    /* INVOICE DETAIL */
+    .invoice-detail { padding: 24px; }
+    .invoice-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .invoice-field { display: flex; flex-direction: column; gap: 4px; }
+    .invoice-field-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--fg-3); }
+    .invoice-field-value { font-size: 15px; font-weight: 600; color: var(--fg); }
+    .invoice-amount-box { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; margin-bottom: 20px; }
+    .invoice-amount-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--fg-3); }
+    .invoice-amount { font-family: 'Sora', sans-serif; font-size: 36px; font-weight: 800; color: var(--fg); }
+
+    /* TOAST */
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+    .toast { background: var(--fg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 20px rgba(0,0,0,.15); animation: slideIn 0.2s ease-out; }
+    .toast--success { background: var(--green); }
+    .toast--error { background: var(--red); }
+    @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    /* EMPTY */
+    .empty-state { padding: 48px 24px; text-align: center; color: var(--fg-3); }
+    .empty-state h3 { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: var(--fg-2); margin-bottom: 8px; }
+    .empty-state p { font-size: 13px; }
+
+    /* LOGOUT PAGE */
+    .logout-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .logout-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 40px; text-align: center; max-width: 360px; }
+    .logout-card h2 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .logout-card p { color: var(--fg-3); font-size: 13px; margin-bottom: 24px; }
+    .logout-card .btn { width: 100%; justify-content: center; padding: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a href="/" class="topbar-logo">
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect width="20" height="20" rx="5" fill="#0ea5e9"/><path d="M6 10h2v4H6zM9 7h2v7H9zM12 5h2v9h-2z" fill="white"/></svg>
+    AlertPulse<span class="topbar-logo-dot">.</span>
+  </a>
+  <div class="topbar-nav">
+    <button class="nav-btn active" onclick="showSection('clients')" id="tab-clients">Clients</button>
+    <button class="nav-btn" onclick="showSection('billing')" id="tab-billing">Billing</button>
+    <button class="nav-btn" onclick="showSection('config')" id="tab-config">Alarm Config</button>
+  </div>
+  <div class="topbar-right">
+    <div class="sync-badge"><span class="sync-dot"></span>Admin Mode</div>
+    <button class="logout-btn" onclick="logout()">Lock</button>
+  </div>
+</div>
+
+<!-- CLIENTS SECTION -->
+<div class="page" id="section-clients">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Hospital Clients</div>
+      <div class="page-subtitle"><span id="hospitals-count">0</span> registered hospitals</div>
+    </div>
+    <button class="btn btn--primary" onclick="openHospitalModal()">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Add Hospital
+    </button>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-cards" id="client-stats">
+    <div class="stat-card">
+      <div class="stat-card-label">Total Clients</div>
+      <div class="stat-card-value" id="stat-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Active</div>
+      <div class="stat-card-value stat-card-value--green" id="stat-active">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">In Pilot</div>
+      <div class="stat-card-value stat-card-value--orange" id="stat-pilot">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Revenue / mo</div>
+      <div class="stat-card-value" id="stat-revenue">$0</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Registered Hospitals</span>
+    </div>
+    <div class="panel-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Hospital</th>
+            <th>ICU Beds</th>
+            <th>Contact</th>
+            <th>Tier</th>
+            <th>Status</th>
+            <th>Monthly Rate</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="hospitals-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- BILLING SECTION -->
+<div class="page" id="section-billing" style="display:none;">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Billing & Invoices</div>
+      <div class="page-subtitle">Manage client payments and invoices</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <select id="billing-hospital-select" class="form-group" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);font-family:inherit;">
+        <option value="">All Hospitals</option>
+      </select>
+      <button class="btn btn--primary" onclick="openInvoiceModal()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v10M1 6h10" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+        New Invoice
+      </button>
+    </div>
+  </div>
+
+  <!-- Billing stats -->
+  <div class="stat-cards">
+    <div class="stat-card">
+      <div class="stat-card-label">Revenue Collected</div>
+      <div class="stat-card-value stat-card-value--green" id="billing-collected">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Outstanding</div>
+      <div class="stat-card-value stat-card-value--orange" id="billing-outstanding">$0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Overdue</div>
+      <div class="stat-card-value stat-card-value--red" id="billing-overdue">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">Total Invoices</div>
+      <div class="stat-card-value" id="billing-total">0</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">All Invoices</span>
+    </div>
+    <div class="panel-body">
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Hospital</th>
+            <th>Period</th>
+            <th>Amount</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Payment Link</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="invoices-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG SECTION -->
+<div class="page" id="section-config" style="display:none;">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Alarm Configuration</div>
+      <div class="page-subtitle">Per-hospital alarm thresholds and suppression rules</div>
+    </div>
+  </div>
+  <div class="stat-cards">
+    <div class="stat-card">
+      <div class="stat-card-label">Total Config Keys</div>
+      <div class="stat-card-value" id="config-count">0</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Alarm Config per Hospital</span>
+    </div>
+    <div class="panel-body" id="config-list">
+      <div class="empty-state">
+        <h3>Select a hospital</h3>
+        <p>Choose a hospital from the Clients tab to view its alarm configuration</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOSPITAL MODAL -->
+<div class="modal-overlay" id="hospital-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="hospital-modal-title">Add Hospital</div>
+      <button class="modal-close" onclick="closeModal('hospital-modal')">&times;</button>
+    </div>
+    <div class="error-msg" id="hospital-error"></div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Hospital Name *</label>
+        <input type="text" id="h-name" placeholder="Memorial General Hospital">
+      </div>
+      <div class="form-group">
+        <label>ICU Count</label>
+        <input type="number" id="h-icu_count" placeholder="4" min="1" value="1">
+      </div>
+      <div class="form-group">
+        <label>Tier</label>
+        <select id="h-tier">
+          <option value="basic">Basic — $29/mo</option>
+          <option value="premium">Premium — custom</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contact Name</label>
+        <input type="text" id="h-contact_name" placeholder="Dr. Sarah Chen">
+      </div>
+      <div class="form-group">
+        <label>Contact Email</label>
+        <input type="email" id="h-contact_email" placeholder="schen@hospital.org">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="h-status">
+          <option value="lead">Lead</option>
+          <option value="pilot">Pilot</option>
+          <option value="active">Active</option>
+          <option value="churned">Churned</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Monthly Rate (USD)</label>
+        <input type="number" id="h-monthly_rate_cents" placeholder="2900" min="100" value="2900">
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn btn--secondary" onclick="closeModal('hospital-modal')">Cancel</button>
+      <button class="btn btn--primary" onclick="saveHospital()">Save Hospital</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVOICE MODAL -->
+<div class="modal-overlay" id="invoice-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Generate Invoice</div>
+      <button class="modal-close" onclick="closeModal('invoice-modal')">&times;</button>
+    </div>
+    <div class="error-msg" id="invoice-error"></div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Hospital *</label>
+        <select id="i-hospital_id"></select>
+      </div>
+      <div class="form-group">
+        <label>Service Period Start *</label>
+        <input type="date" id="i-service_period_start">
+      </div>
+      <div class="form-group">
+        <label>Service Period End *</label>
+        <input type="date" id="i-service_period_end">
+      </div>
+      <div class="form-group">
+        <label>Due Date *</label>
+        <input type="date" id="i-due_date">
+      </div>
+      <div class="form-group">
+        <label>Amount (USD) *</label>
+        <input type="number" id="i-amount_cents" placeholder="2900" min="100" value="2900">
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn btn--secondary" onclick="closeModal('invoice-modal')">Cancel</button>
+      <button class="btn btn--primary" onclick="saveInvoice()">Create Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG EDIT MODAL -->
+<div class="modal-overlay" id="config-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="config-modal-title">Edit Alarm Config</div>
+      <button class="modal-close" onclick="closeModal('config-modal')">&times;</button>
+    </div>
+    <div class="error-msg" id="config-error"></div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Config Key</label>
+        <input type="text" id="c-config_key" placeholder="hr_high_threshold">
+      </div>
+      <div class="form-group full">
+        <label>Value</label>
+        <input type="text" id="c-config_value" placeholder="120">
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn btn--secondary" onclick="closeModal('config-modal')">Cancel</button>
+      <button class="btn btn--primary" onclick="saveConfig()">Save Config</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const ADMIN_SECRET = localStorage.getItem('admin_secret') || '';
+const API = '';
+
+// ── Auth ────────────────────────────────────────────────────
+
+function logout() {
+  localStorage.removeItem('admin_secret');
+  showLoginPrompt();
+}
+
+function showLoginPrompt() {
+  document.body.innerHTML = `
+    <div class="logout-page">
+      <div class="logout-card">
+        <h2>Admin Access</h2>
+        <p>Enter your admin secret key to access the control panel.</p>
+        <input type="password" id="login-secret" placeholder="Admin Secret Key" style="width:100%;margin-bottom:12px;" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="btn btn--primary" onclick="doLogin()">Unlock</button>
+      </div>
+    </div>`;
+  document.getElementById('login-secret').focus();
+}
+
+function doLogin() {
+  const key = document.getElementById('login-secret').value;
+  if (!key) return;
+  localStorage.setItem('admin_secret', key);
+  location.reload();
+}
+
+async function api(path, opts = {}) {
+  const secret = localStorage.getItem('admin_secret');
+  if (!secret) { showLoginPrompt(); throw new Error('unauthorized'); }
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: { ...opts.headers, 'x-admin-secret': secret, 'Content-Type': 'application/json' },
+    body: opts.body && typeof opts.body !== 'string' ? JSON.stringify(opts.body) : opts.body,
+  });
+  if (res.status === 401) { showLoginPrompt(); throw new Error('unauthorized'); }
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'API error');
+  return json;
+}
+
+// ── Toast ────────────────────────────────────────────────────
+
+function toast(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' toast--' + type : '');
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ── Sections ─────────────────────────────────────────────────
+
+function showSection(name) {
+  document.querySelectorAll('[id^="section-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('section-' + name).style.display = '';
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ── Hospitals ────────────────────────────────────────────────
+
+let hospitals = [];
+let editingHospitalId = null;
+
+function openHospitalModal(id = null) {
+  editingHospitalId = id;
+  document.getElementById('hospital-modal-title').textContent = id ? 'Edit Hospital' : 'Add Hospital';
+  document.getElementById('hospital-error').classList.remove('show');
+  if (id) {
+    const h = hospitals.find(h => h.id === id);
+    if (h) {
+      document.getElementById('h-name').value = h.name;
+      document.getElementById('h-icu_count').value = h.icu_count;
+      document.getElementById('h-tier').value = h.tier;
+      document.getElementById('h-contact_name').value = h.contact_name || '';
+      document.getElementById('h-contact_email').value = h.contact_email || '';
+      document.getElementById('h-status').value = h.status;
+      document.getElementById('h-monthly_rate_cents').value = h.monthly_rate_cents;
+    }
+  } else {
+    ['h-name','h-icu_count','h-tier','h-contact_name','h-contact_email','h-status','h-monthly_rate_cents'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('h-icu_count').value = '1';
+    document.getElementById('h-tier').value = 'basic';
+    document.getElementById('h-status').value = 'lead';
+    document.getElementById('h-monthly_rate_cents').value = '2900';
+  }
+  openModal('hospital-modal');
+}
+
+async function saveHospital() {
+  const err = document.getElementById('hospital-error');
+  const data = {
+    name: document.getElementById('h-name').value.trim(),
+    icu_count: parseInt(document.getElementById('h-icu_count').value) || 1,
+    tier: document.getElementById('h-tier').value,
+    contact_name: document.getElementById('h-contact_name').value.trim() || null,
+    contact_email: document.getElementById('h-contact_email').value.trim() || null,
+    status: document.getElementById('h-status').value,
+    monthly_rate_cents: parseInt(document.getElementById('h-monthly_rate_cents').value) || 2900,
+  };
+  if (!data.name) { err.textContent = 'Hospital name is required'; err.classList.add('show'); return; }
+  try {
+    if (editingHospitalId) {
+      await api(`/api/admin/hospitals/${editingHospitalId}`, { method: 'PUT', body: data });
+      toast('Hospital updated', 'success');
+    } else {
+      await api('/api/admin/hospitals', { method: 'POST', body: data });
+      toast('Hospital added', 'success');
+    }
+    closeModal('hospital-modal');
+    loadHospitals();
+    loadBillingStats();
+  } catch (e) {
+    err.textContent = e.message; err.classList.add('show');
+  }
+}
+
+async function deleteHospital(id) {
+  if (!confirm('Delete this hospital and all its invoices?')) return;
+  try {
+    await api(`/api/admin/hospitals/${id}`, { method: 'DELETE' });
+    toast('Hospital deleted', 'success');
+    loadHospitals();
+    loadBillingStats();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Invoices ─────────────────────────────────────────────────
+
+let invoices = [];
+let hospitalsMap = {};
+
+async function loadBillingStats() {
+  try {
+    const data = await api('/api/admin/invoices');
+    const s = data.stats;
+    document.getElementById('billing-collected').textContent = '$' + ((s.total_paid_cents || 0) / 100).toLocaleString('en-US', {minimumFractionDigits: 0});
+    document.getElementById('billing-outstanding').textContent = '$' + ((s.total_pending_cents || 0) / 100).toLocaleString('en-US', {minimumFractionDigits: 0});
+    document.getElementById('billing-overdue').textContent = s.overdue || 0;
+    document.getElementById('billing-total').textContent = s.total || 0;
+  } catch (e) {}
+}
+
+async function loadInvoices(hospitalId = '') {
+  try {
+    if (hospitalId) {
+      const data = await api(`/api/admin/hospitals/${hospitalId}/invoices`);
+      invoices = data.invoices;
+    } else {
+      // Load all invoices for all hospitals
+      const allInvoices = [];
+      for (const h of hospitals) {
+        try {
+          const data = await api(`/api/admin/hospitals/${h.id}/invoices`);
+          allInvoices.push(...data.invoices.map(inv => ({ ...inv, _hospital: h })));
+        } catch (e) {}
+      }
+      invoices = allInvoices;
+    }
+    renderInvoices();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function renderInvoices() {
+  const tbody = document.getElementById('invoices-tbody');
+  const filter = document.getElementById('billing-hospital-select').value;
+  const filtered = filter ? invoices.filter(i => i.hospital_id === parseInt(filter) || i._hospital?.id === parseInt(filter)) : invoices;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--fg-3);font-size:13px;">No invoices yet. Create one above.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(inv => {
+    const amt = '$' + (inv.amount_cents / 100).toFixed(2);
+    const due = new Date(inv.due_date).toLocaleDateString();
+    const period = `${inv.service_period_start} → ${inv.service_period_end}`;
+    const h = inv._hospital || hospitalsMap[inv.hospital_id] || {};
+    return `<tr>
+      <td><span style="font-family:monospace;font-size:12px;font-weight:600;color:var(--fg-3);">${inv.invoice_number}</span></td>
+      <td><span class="hospital-name">${h.name || '—'}</span></td>
+      <td style="font-size:12px;color:var(--fg-3);">${period}</td>
+      <td><span class="amount amount--${inv.status}">${amt}</span></td>
+      <td style="font-size:12px;color:var(--fg-3);font-family:monospace;">${due}</td>
+      <td><span class="badge badge--${inv.status}">${inv.status}</span></td>
+      <td>${inv.stripe_checkout_url ? '<a href="' + inv.stripe_checkout_url + '" target="_blank" class="btn btn--sm btn--success">Pay</a>' : '<button class="btn btn--sm btn--secondary" onclick="generatePaymentLink(' + inv.id + ')">Create Link</button>'}</td>
+      <td>
+        <div class="action-group">
+          ${inv.status !== 'paid' ? '<button class="btn btn--sm btn--success" onclick="markPaid(' + inv.id + ')">Mark Paid</button>' : ''}
+          ${inv.status === 'pending' ? '<button class="btn btn--sm btn--danger" onclick="markOverdue(' + inv.id + ')">Overdue</button>' : ''}
+          <button class="btn btn--sm btn--secondary" onclick="viewInvoice(${inv.id})">View</button>
+          <button class="btn btn--sm btn--icon btn--danger" onclick="deleteInvoice(${inv.id})" title="Delete">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 2l7 7M9 2l-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openInvoiceModal() {
+  document.getElementById('invoice-error').classList.remove('show');
+  const sel = document.getElementById('i-hospital_id');
+  sel.innerHTML = hospitals.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
+  const today = new Date(); const y = today.getFullYear(); const m = String(today.getMonth() + 1).padStart(2, '0');
+  document.getElementById('i-service_period_start').value = `${y}-${m}-01`;
+  const nextMonth = new Date(y, today.getMonth() + 1, 0);
+  document.getElementById('i-service_period_end').value = nextMonth.toISOString().slice(0, 10);
+  document.getElementById('i-due_date').value = new Date(y, today.getMonth() + 1, 15).toISOString().slice(0, 10);
+  document.getElementById('i-amount_cents').value = '2900';
+  openModal('invoice-modal');
+}
+
+async function saveInvoice() {
+  const err = document.getElementById('invoice-error');
+  const data = {
+    hospital_id: parseInt(document.getElementById('i-hospital_id').value),
+    service_period_start: document.getElementById('i-service_period_start').value,
+    service_period_end: document.getElementById('i-service_period_end').value,
+    due_date: document.getElementById('i-due_date').value,
+    amount_cents: parseInt(document.getElementById('i-amount_cents').value) || 2900,
+  };
+  if (!data.hospital_id || !data.service_period_start || !data.service_period_end || !data.due_date) {
+    err.textContent = 'All fields required'; err.classList.add('show'); return;
+  }
+  try {
+    await api('/api/admin/invoices', { method: 'POST', body: data });
+    toast('Invoice created', 'success');
+    closeModal('invoice-modal');
+    loadBillingStats();
+    loadInvoices();
+  } catch (e) { err.textContent = e.message; err.classList.add('show'); }
+}
+
+async function generatePaymentLink(invoiceId) {
+  try {
+    toast('Creating Stripe payment link…');
+    const data = await api(`/api/admin/invoices/${invoiceId}/generate-payment-link`, { method: 'POST' });
+    toast('Payment link created — opening Stripe…', 'success');
+    if (data.payment_url) window.open(data.payment_url, '_blank');
+    loadInvoices();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function markPaid(invoiceId) {
+  try {
+    await api(`/api/admin/invoices/${invoiceId}/status`, { method: 'PUT', body: { status: 'paid', paid_at: new Date().toISOString() } });
+    toast('Marked paid', 'success');
+    loadBillingStats();
+    loadInvoices();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function markOverdue(invoiceId) {
+  try {
+    await api(`/api/admin/invoices/${invoiceId}/status`, { method: 'PUT', body: { status: 'overdue' } });
+    toast('Marked overdue', 'error');
+    loadBillingStats();
+    loadInvoices();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteInvoice(id) {
+  if (!confirm('Delete this invoice?')) return;
+  try {
+    await api(`/api/admin/invoices/${id}`, { method: 'DELETE' });
+    toast('Invoice deleted', 'success');
+    loadBillingStats();
+    loadInvoices();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Alarm Config ─────────────────────────────────────────────
+
+let selectedConfigHospitalId = null;
+
+async function loadConfigForHospital(hospitalId) {
+  selectedConfigHospitalId = hospitalId;
+  try {
+    const data = await api(`/api/admin/hospitals/${hospitalId}/config`);
+    const config = data.config;
+    const hospital = hospitals.find(h => h.id === hospitalId);
+    renderConfig(hospital, config);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function renderConfig(hospital, config) {
+  const list = document.getElementById('config-list');
+  document.getElementById('config-count').textContent = Object.keys(config).length;
+
+  if (!hospital) {
+    list.innerHTML = '<div class="empty-state"><h3>Select a hospital</h3><p>Choose a hospital to view alarm configuration</p></div>';
+    return;
+  }
+
+  const rows = Object.entries(config);
+  list.innerHTML = `
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg-alt);">
+      <div>
+        <div style="font-weight:700;font-size:14px;">${hospital.name}</div>
+        <div style="font-size:12px;color:var(--fg-3);">${hospital.icu_count} ICU bed${hospital.icu_count !== 1 ? 's' : ''}</div>
+      </div>
+      <button class="btn btn--primary btn--sm" onclick="openAddConfig()">+ Add Key</button>
+    </div>
+    ${rows.length === 0 ? '<div class="empty-state"><h3>No config yet</h3><p>Add alarm thresholds and suppression rules for this hospital</p></div>' :
+      rows.map(([key, val]) => `
+        <div class="config-grid">
+          <span class="config-key">${key}</span>
+          <span class="config-value">${val}</span>
+          <div class="config-actions">
+            <button class="btn btn--sm btn--secondary" onclick="openEditConfig('${key}','${val}')">Edit</button>
+            <button class="btn btn--sm btn--icon btn--danger" onclick="deleteConfig('${key}')" title="Delete">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 2l7 7M9 2l-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>`).join('')
+    }`;
+}
+
+let editingConfigKey = null;
+
+function openAddConfig() {
+  editingConfigKey = null;
+  document.getElementById('config-modal-title').textContent = 'Add Alarm Config';
+  document.getElementById('config-error').classList.remove('show');
+  document.getElementById('c-config_key').value = '';
+  document.getElementById('c-config_value').value = '';
+  openModal('config-modal');
+}
+
+function openEditConfig(key, value) {
+  editingConfigKey = key;
+  document.getElementById('config-modal-title').textContent = 'Edit Alarm Config';
+  document.getElementById('config-error').classList.remove('show');
+  document.getElementById('c-config_key').value = key;
+  document.getElementById('c-config_key').readOnly = true;
+  document.getElementById('c-config_value').value = value;
+  openModal('config-modal');
+}
+
+async function saveConfig() {
+  const err = document.getElementById('config-error');
+  const key = document.getElementById('c-config_key').value.trim();
+  const value = document.getElementById('c-config_value').value.trim();
+  if (!key || !value) { err.textContent = 'Key and value required'; err.classList.add('show'); return; }
+  try {
+    const body = { config: {} };
+    body.config[key] = value;
+    await api(`/api/admin/hospitals/${selectedConfigHospitalId}/config`, { method: 'PUT', body });
+    toast('Config saved', 'success');
+    closeModal('config-modal');
+    document.getElementById('c-config_key').readOnly = false;
+    loadConfigForHospital(selectedConfigHospitalId);
+  } catch (e) { err.textContent = e.message; err.classList.add('show'); }
+}
+
+async function deleteConfig(key) {
+  try {
+    await api(`/api/admin/hospitals/${selectedConfigHospitalId}/config/${encodeURIComponent(key)}`, { method: 'DELETE' });
+    toast('Config key removed', 'success');
+    loadConfigForHospital(selectedConfigHospitalId);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Hospitals: render ────────────────────────────────────────
+
+function renderHospitals() {
+  const tbody = document.getElementById('hospitals-tbody');
+  hospitalsMap = {};
+  hospitals.forEach(h => { hospitalsMap[h.id] = h; });
+
+  document.getElementById('hospitals-count').textContent = hospitals.length;
+  const active = hospitals.filter(h => h.status === 'active').length;
+  const pilot = hospitals.filter(h => h.status === 'pilot').length;
+  const revenue = hospitals.filter(h => h.status === 'active' || h.status === 'pilot').reduce((s, h) => s + (h.monthly_rate_cents || 0), 0);
+  document.getElementById('stat-total').textContent = hospitals.length;
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-pilot').textContent = pilot;
+  document.getElementById('stat-revenue').textContent = '$' + (revenue / 100).toLocaleString('en-US', {minimumFractionDigits: 0}) + '/mo';
+
+  if (hospitals.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-state" style="padding:40px;text-align:center;"><div style="font-size:14px;font-weight:600;color:var(--fg-2);margin-bottom:6px;">No hospitals yet</div><div style="font-size:13px;">Add your first hospital client to get started</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = hospitals.map(h => `
+    <tr>
+      <td>
+        <div class="hospital-name">${h.name}</div>
+        <div class="hospital-meta">ID #${h.id}</div>
+      </td>
+      <td>${h.icu_count}</td>
+      <td>
+        <div style="font-size:13px;">${h.contact_name || '—'}</div>
+        <div style="font-size:11px;color:var(--fg-3);">${h.contact_email || ''}</div>
+      </td>
+      <td><span class="badge badge--${h.tier}">${h.tier}</span></td>
+      <td><span class="badge badge--${h.status}">${h.status}</span></td>
+      <td><span class="amount">$${(h.monthly_rate_cents / 100).toFixed(2)}</span></td>
+      <td>
+        <div class="action-group">
+          <button class="btn btn--sm btn--secondary" onclick="openHospitalModal(${h.id})">Edit</button>
+          <button class="btn btn--sm btn--secondary" onclick="showSection('config');loadConfigForHospital(${h.id})">Config</button>
+          <button class="btn btn--sm btn--secondary" onclick="showSection('billing');loadInvoices(${h.id})">Invoices</button>
+          <button class="btn btn--sm btn--icon btn--danger" onclick="deleteHospital(${h.id})" title="Delete">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 2l7 7M9 2l-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  // Populate billing hospital select
+  const sel = document.getElementById('billing-hospital-select');
+  sel.innerHTML = '<option value="">All Hospitals</option>' + hospitals.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
+}
+
+// ── Load all ─────────────────────────────────────────────────
+
+async function loadHospitals() {
+  try {
+    const data = await api('/api/admin/hospitals');
+    hospitals = data.hospitals;
+    renderHospitals();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Modals ──────────────────────────────────────────────────
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.getElementById('c-config_key')?.removeAttribute('readonly');
+}
+
+// ── Invoice detail view ──────────────────────────────────────
+
+async function viewInvoice(id) {
+  const inv = invoices.find(i => i.id === id);
+  if (!inv) { toast('Invoice not found', 'error'); return; }
+  const h = inv._hospital || hospitalsMap[inv.hospital_id] || {};
+  const html = `<div class="invoice-detail">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:'Sora',sans-serif;font-size:18px;font-weight:700;">Invoice ${inv.invoice_number}</div>
+      <span class="badge badge--${inv.status}">${inv.status}</span>
+    </div>
+    <div class="invoice-meta">
+      <div class="invoice-field"><div class="invoice-field-label">Hospital</div><div class="invoice-field-value">${h.name || '—'}</div></div>
+      <div class="invoice-field"><div class="invoice-field-label">Contact</div><div class="invoice-field-value">${h.contact_email || '—'}</div></div>
+      <div class="invoice-field"><div class="invoice-field-label">Period</div><div class="invoice-field-value">${inv.service_period_start} → ${inv.service_period_end}</div></div>
+      <div class="invoice-field"><div class="invoice-field-label">Due Date</div><div class="invoice-field-value">${inv.due_date}</div></div>
+    </div>
+    <div class="invoice-amount-box">
+      <div class="invoice-amount-label">Total Amount Due</div>
+      <div class="invoice-amount">$${(inv.amount_cents / 100).toFixed(2)}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      ${inv.stripe_checkout_url ? `<a href="${inv.stripe_checkout_url}" target="_blank" class="btn btn--success">Open Payment Link</a>` : `<button class="btn btn--secondary" onclick="generatePaymentLink(${inv.id})">Create Stripe Payment Link</button>`}
+      ${inv.status !== 'paid' ? `<button class="btn btn--success" onclick="markPaid(${inv.id});closeModal('invoice-modal')">Mark as Paid</button>` : `<span style="color:var(--green);font-size:13px;font-weight:600;display:flex;align-items:center;gap:5px;"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Paid</span>`}
+    </div>
+  </div>`;
+  document.getElementById('invoice-modal').querySelector('.modal').innerHTML = `
+    <div class="modal-header">
+      <div class="modal-title">Invoice ${inv.invoice_number}</div>
+      <button class="modal-close" onclick="closeModal('invoice-modal');loadInvoices()">&times;</button>
+    </div>${html}
+    <div class="form-footer">
+      <button class="btn btn--secondary" onclick="closeModal('invoice-modal');loadInvoices()">Close</button>
+    </div>`;
+  openModal('invoice-modal');
+}
+
+// ── Billing filter ───────────────────────────────────────────
+
+document.getElementById('billing-hospital-select')?.addEventListener('change', function() {
+  loadInvoices(this.value);
+});
+
+// ── Boot ────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!localStorage.getItem('admin_secret')) {
+    showLoginPrompt();
+    return;
+  }
+  loadHospitals();
+  loadBillingStats();
+  loadInvoices();
+});
+</script>
+</body>
+</html>

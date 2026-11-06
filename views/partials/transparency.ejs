@@ -1,0 +1,46 @@
+<section class="transparency">
+  <div class="transparency-inner">
+    <div class="section-label">Transparent AI</div>
+    <h2 class="transparency-headline">Every classification comes with the why</h2>
+    <p class="transparency-sub">AlertPulse doesn't produce a black-box score. For every alarm, it outputs the rule applied, the evidence chain, and the confidence — so clinicians and compliance officers can audit every decision.</p>
+    <div class="transparency-card">
+      <div class="t-card">
+        <div class="t-card__badge t-card__badge--dispatch">DISPATCH</div>
+        <div class="t-card__event">
+          <div class="t-card__event-title">High heart rate — HR 142 bpm</div>
+          <div class="t-card__event-meta">ICU Bay 3 · Patient 4891 · Jun 07 06:14:22</div>
+        </div>
+        <div class="t-card__divider"></div>
+        <div class="t-card__reasoning">
+          <div class="t-card__reasoning-label">AI Reasoning Chain</div>
+          <div class="t-card__chain">
+            <div class="t-card__chain-row">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#0ea5e9" stroke-width="1.5"/><path d="M7 4v3.5L9 9" stroke="#0ea5e9" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <div class="t-card__chain-text"><strong>Input:</strong> HR 142 bpm × 3 min sustained, no Bolus Onset logged, SpO2 97%, RR 18</div>
+            </div>
+            <div class="t-card__chain-row">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#0ea5e9" stroke-width="1.5"/><path d="M7 4v3.5L9 9" stroke="#0ea5e9" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <div class="t-card__chain-text"><strong>Pattern match:</strong> Sustained tachycardia × 3 min, no Rx Onset correlation, no positional trigger</div>
+            </div>
+            <div class="t-card__chain-row">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#0ea5e9" stroke-width="1.5"/><path d="M7 4v3.5L9 9" stroke="#0ea5e9" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <div class="t-card__chain-text"><strong>Rule applied:</strong> DISPATCH-02 — HR > 130 bpm + no suppression flags → dispatch to on-call nurse</div>
+            </div>
+            <div class="t-card__chain-row">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#059669" stroke-width="1.5"/><path d="M3 7l3 3 5-5" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <div class="t-card__chain-text t-card__chain-text--green"><strong>Confidence:</strong> 91% — low artifact probability, clear clinical threshold breach</div>
+            </div>
+          </div>
+        </div>
+        <div class="t-card__action">
+          <div class="t-card__action-label">Recommended action</div>
+          <div class="t-card__action-value">Nurse dispatch to Bay 3 — patient requires bedside assessment</div>
+        </div>
+        <div class="t-card__footer">
+          <span>Rule set: AlertPulse Clinical v2.1</span>
+          <span>EU AI Act — Article 12 audit trail</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
